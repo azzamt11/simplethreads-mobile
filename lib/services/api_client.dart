@@ -118,4 +118,24 @@ class ApiClient {
       rethrow;
     }
   }
+
+  static Future<void> updatePost({required int postId, required String content}) async {
+    try {
+      final response = await http.put(
+        Uri.parse('$baseUrl/posts/update'),
+        headers: _headers,
+        body: jsonEncode({
+          'id': postId,
+          'content': content,
+        }),
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception('Failed to update post');
+      }
+    } catch (e) {
+      debugPrint('azzam_debug error updating: $e');
+      rethrow;
+    }
+  }
 }

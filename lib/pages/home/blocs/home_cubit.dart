@@ -94,6 +94,15 @@ class HomeCubit extends Cubit<HomeState> {
       _emitError(e);
     }
   }
+
+  Future<void> editPost(int postId, String newContent) async {
+    try {
+      await ApiClient.updatePost(postId: postId, content: newContent);
+      await fetch(); // Refresh the feed
+    } catch (e) {
+      _emitError(e);
+    }
+  }
 }
 
 class HomeError {

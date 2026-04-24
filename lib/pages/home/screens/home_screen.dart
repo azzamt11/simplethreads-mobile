@@ -143,19 +143,17 @@ class _PostItem extends StatelessWidget {
           children: [
             Row(
               children: [
-                const CircleAvatar(
-                  radius: 14,
-                  backgroundColor: Colors.grey,
-                ),
+                const CircleAvatar(radius: 14, backgroundColor: Colors.grey),
                 const SizedBox(width: 10),
                 Text(
                   post.userName ?? "Anonymous",
                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                 ),
                 const Spacer(),
+                // Changed to a "Menu" button
                 IconButton(
                   icon: const Icon(Icons.more_horiz, color: Colors.grey),
-                  onPressed: () => _showDeleteDialog(context),
+                  onPressed: () => _showOptionsMenu(context),
                 ),
               ],
             ),
@@ -165,44 +163,25 @@ class _PostItem extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    post.content ?? "",
-                    style: const TextStyle(fontSize: 15, color: Colors.black87),
-                  ),
+                  Text(post.content ?? "", style: const TextStyle(fontSize: 15, color: Colors.black87)),
                   const SizedBox(height: 12),
                   Row(
                     children: [
-                      // --- LIKE BUTTON ---
                       GestureDetector(
                         onTap: () => context.read<HomeCubit>().toggleLike(post),
                         child: Row(
                           children: [
-                            Icon(
-                              isLiked ? Icons.favorite : Icons.favorite_border,
-                              size: 22,
-                              color: isLiked ? Colors.pink : Colors.grey,
-                            ),
+                            Icon(isLiked ? Icons.favorite : Icons.favorite_border,
+                                size: 22, color: isLiked ? Colors.pink : Colors.grey),
                             const SizedBox(width: 6),
-                            Text(
-                              (post.likeCount ?? 0).toString(),
-                              style: TextStyle(
-                                color: isLiked ? Colors.pink : Colors.grey,
-                                fontWeight: isLiked ? FontWeight.bold : FontWeight.normal,
-                              ),
-                            ),
+                            Text((post.likeCount ?? 0).toString()),
                           ],
                         ),
                       ),
                       const SizedBox(width: 20),
-                      // --- COMMENT BUTTON ---
                       GestureDetector(
                         onTap: () => _showCommentSheet(context),
-                        child: const Row(
-                          children: [
-                            Icon(Icons.chat_bubble_outline, size: 20, color: Colors.grey),
-                            // You could add a commentCount here if your backend supports it
-                          ],
-                        ),
+                        child: const Icon(Icons.chat_bubble_outline, size: 20, color: Colors.grey),
                       ),
                     ],
                   ),
@@ -210,10 +189,88 @@ class _PostItem extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 12),
-            Divider(height: 1, thickness: 0.5, color: post.id != post.parentPostId || post.parentPostId == null? Colors.grey : Colors.black),
+            Divider(
+              height: 1, 
+              thickness: 0.5, 
+              color: post.id != post.parentPostId || post.parentPostId == null ? Colors.grey : Colors.black
+            ),
           ],
         ),
-      )
+      ),
+    );
+  }
+
+  // --- NEW OPTIONS MENU ---
+  void _showOptionsMenu(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (menuContext) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            leading: const Icon(Icons.edit_outlined),
+            title: const Text("Edit Post"),
+            onTap: () {
+              Navigator.pop(menuContext);
+              _showEditSheet(context);
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.delete_outline, color: Colors.red),
+            title: const Text("Delete", style: TextStyle(color: Colors.red)),
+            onTap: () {
+              Navigator.pop(menuContext);
+              _showDeleteDialog(context);
+            },
+          ),
+          const SizedBox(height: 20),
+        ],
+      ),
+    );
+  }
+
+  // --- NEW EDIT SHEET ---
+  void _showEditSheet(BuildContext context) {
+    final TextEditingController editController = TextEditingController(text: post.content);
+    
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      builder: (sheetContext) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(sheetContext).viewInsets.bottom,
+          left: 20, right: 20, top: 20,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text("Edit Thread", style: TextStyle(fontWeight: FontWeight.bold)),
+            TextField(
+              controller: editController,
+              maxLines: 4,
+              autofocus: true,
+              decoration: const InputDecoration(border: InputBorder.none),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(onPressed: () => Navigator.pop(sheetContext), child: const Text("Cancel")),
+                ElevatedButton(
+                  onPressed: () {
+                    context.read<HomeCubit>().editPost(post.id!, editController.text);
+                    Navigator.pop(sheetContext);
+                  },
+                  child: const Text("Update"),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+          ],
+        ),
+      ),
     );
   }
 
